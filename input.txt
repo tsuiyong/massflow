@@ -1,0 +1,6 @@
+Parameter             Value
+power_density:       45
+volume:                   42.6
+eta:                          0.33
+Uranium_alias:        U233
+Operating_time:      109
