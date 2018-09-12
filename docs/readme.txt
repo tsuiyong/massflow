@@ -1,4 +1,4 @@
-质量流计算程序V0.2
+质量流计算程序V0.3
 
 包含内容说明：
 
@@ -6,7 +6,8 @@
 1. func.py 重要的功能函数
 2. main.py 主函数模块
 3. mass_flow.txt  main.py 计算得到的结果文件
-4. input.xml  xml格式的输入文件
+4. input.txt  输入文件
+5. nuclide.txt 所关注核素的卸堆质量
 
 文件夹：
 decay

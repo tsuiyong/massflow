@@ -15,4 +15,4 @@ mass_TRU(kg/GWe):
 radioactive_100y_spent_fuel(Ci/GWe-yr):
 22270.8277148
 radioactive_100thy_spent_fuel(Ci/GWe-yr):
-1410.9381495
+77.1007538686

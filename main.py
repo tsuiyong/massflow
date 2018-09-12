@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 """
 Author: Yong Cui @ DRP.SINAP
-Date: 13:36 2018-9-3
+Date: 13:36 2018-9-12
 
 Description
 ===========
@@ -24,7 +24,7 @@ from func import paint_core
 from func import paint_activity
 from func import radio_activity
 import pandas as pd
-
+from func import required_nuclides
 
 start = dt.datetime.now()
 df = pd.read_table('input.txt', sep='\s+')
@@ -68,6 +68,8 @@ f.write(str(Thorium_need / power_electricity) + "\n")
 nuclide_evol = nuclide_evolution(power_density, alias2id("Th232"))
 paint_core(year, "Th232", power_density, nuclide_evol)
 
+print("Calculating the mass of Fission Products(Kg)......")
+
 mass_fission_products = fission_product(power_density)
 f.write("mass_fission_products(kg/GWe):" + "\n")
 f.write(str(mass_fission_products / power_electricity) + "\n")
@@ -82,10 +84,13 @@ mass_depleted_thorium = np.sum(isotope_kg)
 f.write("mass_depleted_thorium(kg/GWe):" + "\n")
 f.write(str(mass_depleted_thorium / power_electricity) + "\n")
 
+print("Calculating the mass of TRansUranium(Kg)......")
+
 mass_TRU = transuranium(power_density)
 f.write("mass_TRU(kg/GWe):" + "\n")
 f.write(str(mass_TRU / power_electricity) + "\n")
 
+print("Calculating the radio activity after the reactor is shut down......")
 mass_off = [nuc2(power_density, i) for i in range(1693)]
 
 decay_time = 100
@@ -95,16 +100,19 @@ f.write(str(total_act / power_electricity / year) + "\n")
 
 paint_activity(decay_time, mass_off)
 
-decay_time = 100000
+decay_time = 1000000
 total_act = radio_activity(decay_time, mass_off)
-f.write("radioactive_100thy_spent_fuel(Ci/GWe-yr):" + "\n")
+f.write("radioactive_1000thy_spent_fuel(Ci/GWe-yr):" + "\n")
 f.write(str(total_act / power_electricity / year) + "\n")
 
 paint_activity(decay_time, mass_off)
 
 f.close()
+
+print("Calculating the mass of required nuclides......")
+
+required_nuclides(mass_off)
+
 end = dt.datetime.now()
 
 print("Total computing time: " + str(end - start))
-
-
