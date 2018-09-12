@@ -260,9 +260,9 @@ def paint_activity(decay_time, mass_off):
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
 
-    time = [t for t in range(0, decay_time + 1, int(decay_time / 100))]
+    time = [t for t in range(1, decay_time + 1, int(decay_time / 100))]
     act = [radio_activity(t, mass_off) for t in time]
-    plt.semilogy(time, act)
+    plt.loglog(time, act)
     plt.savefig(sys.path[0] + "/figs/" + "activity_" + str(decay_time) + ".png")
     plt.show()
     return

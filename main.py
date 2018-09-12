@@ -36,6 +36,7 @@ year = float(df.iloc[4, 1])
 
 enrichment = 1  # 该值后期应从数据库读入
 power_electricity = float(power_density) * volume * eta / 1000
+
 f = open("mass_flow.txt", "w")
 
 if Uranium_alias == "U233" or Uranium_alias == "Pu239":
@@ -102,7 +103,6 @@ f.write(str(total_act / power_electricity / year) + "\n")
 paint_activity(decay_time, mass_off)
 
 f.close()
-
 end = dt.datetime.now()
 
 print("Total computing time: " + str(end - start))
