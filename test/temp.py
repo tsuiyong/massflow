@@ -1,29 +1,12 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-# 衰变阶段计算
+from func import hb
 
-    n0 = np.zeros(1693, dtype=np.float64)  # 置零
-    n0[nuclid] = mass3[year]
 
-    # 计算初始时刻的值
-    y, y_act, y_q, y_toxi = CRAM48(n0, 0)
-    concentration = np.array([])
-    concentration = np.append(concentration, y[nuclid])
-    activity = np.array([])
-    activity = np.append(activity, y_act[nuclid])
-    heat = np.array([])
-    heat = np.append(heat, y_q[nuclid])
-    toxicity = np.array([])
-    toxicity = np.append(toxicity, y_toxi[nuclid])
+decay_time = 1000000
+s1 = [t for t in range(1, 1001)]
+s2 = [t for t in range(1001, decay_time + 1, int(decay_time / 1000))]
 
-    tl = input()
-    for i in range(1, int(tl) + 1, int(int(tl) * 0.01)):
-        dt = float(i) * 365.25 * 24. * 3600.
-        y, y_act, y_q, y_toxi = CRAM48(n0, dt)
-        concentration = np.append(concentration, y[nuclid])
-        activity = np.append(activity, y_act[nuclid])
-        heat = np.append(heat, y_q[nuclid])
-        toxicity = np.append(toxicity, y_toxi[nuclid])
-
-    f.close()
+time = s1 + s2
+print(time)

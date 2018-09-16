@@ -11,7 +11,6 @@ from scipy.interpolate import lagrange  # Lagrange 插值方法
 from decay.decay import CRAM48  # 导入decay模块
 
 
-# 卸堆核素浓度计算
 def mass_off(time, index1, index2):
     f = h5py.File(sys.path[0] + "/lib/FCDB.hdf5", "r")
     s1 = "MSBR_0" + str(index1 + 1) + "/"
@@ -33,11 +32,11 @@ def initialize(P):
         for key, value in grp.attrs.items():
             if key == "SpecificPower":
                 PowerDensity = np.append(PowerDensity, value)
-
     # 根据给定的功率密度对核素浓度进行插值
     for i in range(num):
         if float(P) == PowerDensity[i]:
-            pass  # 有待添加
+            min0 = i
+            max0 = i
     for i in range(num - 1):
         if PowerDensity[i] < float(P) < PowerDensity[i + 1]:
             min0 = i  # mass 函数输入参数
@@ -146,12 +145,15 @@ def fission_product(power):
           1352, 1353, 1355, 1356, 1357, 1358, 1359, 1360, 1361, 1362, 1369, 1370, 1372, 1373, 1374, 1375, 1385,
           1386]
     for j in fp:
-        m1 = mass_off(year, min, j)
-        m2 = mass_off(year, max, j)
-        x = [PowerDensity[min], PowerDensity[max]]
-        y = [m1, m2]
-        func = lagrange(x, y)
-        m3 = func(float(power))
+        if min == max:
+            m3 = mass_off(year, min, j)
+        else:
+            m1 = mass_off(year, min, j)
+            m2 = mass_off(year, max, j)
+            x = [PowerDensity[min], PowerDensity[max]]
+            y = [m1, m2]
+            func = lagrange(x, y)
+            m3 = func(float(power))
         Mass_fp = Mass_fp + mole2kg(m3, j)
     return Mass_fp
 
@@ -165,12 +167,15 @@ def transuranium(power):
            1640, 1641, 1642, 1643, 1644, 1645, 1646, 1647, 1648, 1649, 1650, 1651, 1652, 1653, 1654, 1655, 1656,
            1657, 1658, 1659, 1660, 1661, 1662, 1663, 1664, 1665, 1666, 1667, 1668, 1669]
     for i in tru:
-        m1 = mass_off(year, min, i)
-        m2 = mass_off(year, max, i)
-        x = [PowerDensity[min], PowerDensity[max]]
-        y = [m1, m2]
-        func = lagrange(x, y)
-        m3 = func(float(power))
+        if min == max:
+            m3 = mass_off(year, min, i)
+        else:
+            m1 = mass_off(year, min, i)
+            m2 = mass_off(year, max, i)
+            x = [PowerDensity[min], PowerDensity[max]]
+            y = [m1, m2]
+            func = lagrange(x, y)
+            m3 = func(float(power))
         Mass_tru = Mass_tru + mole2kg(m3, i)
     return Mass_tru
 
@@ -192,16 +197,20 @@ def mass(time, index1, index2):
 def nuc1(power, nuclid):
     year = 109  # 年份，单位：年
     min, max, PowerDensity = initialize(power)
-    # 准备插值数据
-    mass1 = mass(year, min, nuclid)
-    mass2 = mass(year, max, nuclid)
-    # 插值
     mass3 = np.array([])
-    for i in range(0, year + 1):
-        x = [PowerDensity[min], PowerDensity[max]]
-        y = [mass1[i], mass2[i]]
-        func = lagrange(x, y)
-        mass3 = np.append(mass3, func(float(power)))
+    if min == max:
+        mass3 = mass(year, min, nuclid)
+    else:
+        # 准备插值数据
+        mass1 = mass(year, min, nuclid)
+        mass2 = mass(year, max, nuclid)
+        # 插值
+        for i in range(0, year + 1):
+            x = [PowerDensity[min], PowerDensity[max]]
+            y = [mass1[i], mass2[i]]
+            func = lagrange(x, y)
+            mass3 = np.append(mass3, func(float(power)))
+
     return mass3[0]  # 初装量
 
 
@@ -209,16 +218,20 @@ def nuc1(power, nuclid):
 def nuc2(power, nuclid):
     year = 109  # 年份，单位：年
     min, max, PowerDensity = initialize(power)
-    # 准备插值数据
-    mass1 = mass(year, min, nuclid)
-    mass2 = mass(year, max, nuclid)
-    # 插值
     mass3 = np.array([])
-    for i in range(0, year + 1):
-        x = [PowerDensity[min], PowerDensity[max]]
-        y = [mass1[i], mass2[i]]
-        func = lagrange(x, y)
-        mass3 = np.append(mass3, func(float(power)))
+    if min == max:
+        mass3 = mass(year, min, nuclid)
+    else:
+        # 准备插值数据
+        mass1 = mass(year, min, nuclid)
+        mass2 = mass(year, max, nuclid)
+        # 插值
+        for i in range(0, year + 1):
+            x = [PowerDensity[min], PowerDensity[max]]
+            y = [mass1[i], mass2[i]]
+            func = lagrange(x, y)
+            mass3 = np.append(mass3, func(float(power)))
+
     return mass3[109]  # 卸堆量
 
 
@@ -279,16 +292,19 @@ def paint_decay(time, name, value, kind):
 def nuclide_evolution(power, nuclid):
     year = 109  # 年份，单位：年
     min, max, PowerDensity = initialize(power)
-    # 准备插值数据
-    mass1 = mass(year, min, nuclid)
-    mass2 = mass(year, max, nuclid)
-    # 插值
     mass3 = np.array([])
-    for i in range(0, year + 1):
-        x = [PowerDensity[min], PowerDensity[max]]
-        y = [mass1[i], mass2[i]]
-        func = lagrange(x, y)
-        mass3 = np.append(mass3, func(float(power)))
+    if min == max:
+        mass3 = mass(year, min, nuclid)
+    else:
+        # 准备插值数据
+        mass1 = mass(year, min, nuclid)
+        mass2 = mass(year, max, nuclid)
+        # 插值
+        for i in range(0, year + 1):
+            x = [PowerDensity[min], PowerDensity[max]]
+            y = [mass1[i], mass2[i]]
+            func = lagrange(x, y)
+            mass3 = np.append(mass3, func(float(power)))
     return mass3
 
 
@@ -311,7 +327,9 @@ def paint_activity(decay_time, mass_off):
     if decay_time == 100:
         time = [t for t in range(1, decay_time + 1, int(decay_time / 100))]
     else:
-        time = [t for t in range(1, decay_time + 1, int(decay_time / 1000))]
+        s1 = [t for t in range(1, 1001)]
+        s2 = [t for t in range(1001, decay_time + 1, int(decay_time / 1000))]
+        time = s1 + s2
     act = [radio_activity(t, mass_off) for t in time]
     plt.loglog(time, act)
     plt.savefig(sys.path[0] + "/figs/" + "activity_" + str(decay_time) + ".png")

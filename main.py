@@ -102,7 +102,7 @@ paint_activity(decay_time, mass_off)
 
 decay_time = 1000000
 total_act = radio_activity(decay_time, mass_off)
-f.write("radioactive_1000thy_spent_fuel(Ci/GWe-yr):" + "\n")
+f.write("radioactive_10000thy_spent_fuel(Ci/GWe-yr):" + "\n")
 f.write(str(total_act / power_electricity / year) + "\n")
 
 paint_activity(decay_time, mass_off)
