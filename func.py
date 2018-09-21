@@ -243,16 +243,16 @@ def decay_cal(t, mass_off):
     return y, y_act, y_q, y_toxi
 
 
-# 反应堆运行阶段核素浓度演化绘图
+# 反应堆运行阶段核素质量演化绘图
 def paint_core(time, Alias, power, massflow):
     matplotlib.rcParams['font.family'] = 'sans-serif'  # 绘图风格
     matplotlib.rcParams['font.sans-serif'] = 'Times New Roman'  # 字体设置Times New Roman
 
     t = np.arange(0, time + 1)
-    plt.title('Mass flow of ' + Alias + "(Power Density =" + str(power) + ")", \
+    plt.title('Mass flow of ' + Alias + "(Power Density =" + str(power) + ")",
               fontsize=20)
     plt.xlabel('Time(year)', fontsize=15)
-    plt.ylabel('Concentration of nuclide($m^{-3}$)', fontsize=15)
+    plt.ylabel('Mass of nuclide(Kg)', fontsize=15)
     plt.grid(True)
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
@@ -343,13 +343,71 @@ def required_nuclides(mass_off):
     file = open(sys.path[0] + "/nuclide.txt", "w")
     nuclides = [1598, 1612, 1613, 1614, 1615, 1616, 1617, 1618, 1619, 1627, 1636, 1637, 1638, 1639,
                 1640, 1648, 1650, 1651, 1660, 1661, 1662, 1663, 1664]
+
+    tem1, tem2, tem3, tem4 = CRAM48(mass_off, 0)
     for i in nuclides:
         if i == 1615:
             file.write(namedset[i].decode('utf-8') + " " + str((mole2kg(mass_off[i], i)
-                                                                + mole2kg(mass_off[i + 1], i + 1)) * 1000) + "\n")
+                                                                + mole2kg(mass_off[i + 1], i + 1)) * 1000)
+                       + " " + str(tem3[i] + tem3[i + 1]) + "\n")
         elif i == 1616:
             continue
         else:
-            file.write(namedset[i].decode('utf-8') + " " + str(mole2kg(mass_off[i], i) * 1000) + "\n")
+            file.write(namedset[i].decode('utf-8') + " " + str(mole2kg(mass_off[i], i) * 1000) + " "
+                       + str(tem3[i]) + "\n")
     file.close()
     f.close()
+
+
+def tru_toxicity(time, mass_off):
+    concentration, activity, heat, toxicity = decay_cal(time, mass_off)
+    return toxicity
+
+
+def paint_toxicity(decay_time, mass_off):
+    matplotlib.rcParams['font.family'] = 'sans-serif'  # 绘图风格
+    matplotlib.rcParams['font.sans-serif'] = 'Times New Roman'  # 字体设置Times New Roman
+    plt.title("Toxicity in " + str(decay_time) + "years", fontsize=20)
+    plt.xlabel('Time(year)', fontsize=15)
+    plt.ylabel("Toxicity of nuclides(Sv)", fontsize=15)
+    plt.grid(True)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+
+    if decay_time == 100:
+        time = [t for t in range(1, decay_time + 1, int(decay_time / 100))]
+    else:
+        s1 = [t for t in range(1, 1001, 5)]
+        s2 = [t for t in range(1001, decay_time + 1, int(decay_time / 5000))]
+        time = s1 + s2
+
+    tru = ["Th232", "U235", "U238", "Np237", "Pu239", "Pu241", "Am241", "Cm244", "total"]
+    tru_id = [1598, 1615, 1619, 1627, 1637, 1639, 1648, 1662]
+    result = []
+
+    for i in range(len(tru)):
+        result.append([])
+
+    for j in time:
+        toxicity = tru_toxicity(j, mass_off)
+        for i in range(len(tru) - 1):
+            if i == 1:
+                result[i].append(toxicity[tru_id[i]] + toxicity[tru_id[i] + 1])  # 考虑U235的激发态
+            else:
+                result[i].append(toxicity[tru_id[i]])
+
+        result[-1].append(sum(toxicity))
+
+    for i in range(len(tru) - 1):
+        plt.loglog(time, result[i])
+    plt.loglog(time, result[-1])
+
+    plt.legend(tru, loc=0)
+    plt.ylim(1.0e-2, 1.0e12)
+    if decay_time == 100:
+        plt.xlim(1, 1.0e2)
+    else:
+        plt.xlim(1, 1.0e6)
+
+    plt.savefig(sys.path[0] + "/figs/" + "toxicity_" + str(decay_time) + ".png")
+    plt.show()
